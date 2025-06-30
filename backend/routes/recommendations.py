@@ -20,6 +20,6 @@ def get_recommendations(user_id):
     user_seen_movies = user_item_matrix.loc[user_id]
     movie_scores = movie_scores[user_seen_movies == 0]
 
-    top_movies = movie_scores.sort_values(ascending=False).head(5).index.tolist()
+    top_movies = movie_scores.sort_values(ascending=False).head(10).index.tolist()
 
     return jsonify({'recommended_movie_ids': top_movies}), 200

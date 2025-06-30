@@ -10,11 +10,11 @@ from routes.recommendations import recommendations_bp
 from sqlalchemy import text 
 import csv
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 
 def create_app():
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = Config.SQLALCHEMY_DATABASE_URI
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = Config.SQLALCHEMY_TRACK_MODIFICATIONS
+    app.config.from_object(Config)
     db.init_app(app)
 
     with app.app_context():
@@ -45,16 +45,16 @@ def create_app():
 
 def load_users():
     try: 
-        
         with open('./data/users.csv', newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 if not User.query.get(row['userId']):
+                    hashed_password = generate_password_hash(str(row['password']))
                     user = User(
                         userId=int(row['userId']),
                         username=row['username'],
                         email=row['email'],
-                        password=row['password'],
+                        password=hashed_password,
                         created_at=datetime.strptime(row['created_at'], '%Y-%m-%d %H:%M:%S')
                     )
                     db.session.add(user)
