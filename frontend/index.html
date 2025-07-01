@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 DOMDOM-CINE - Hệ thống gợi ý phim thông minh</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/brands.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- RoPhim Header -->
+    <header class="netflix-header">
+        <div class="header-content">
+            <div class="netflix-logo">
+                <h1><i class="fas fa-film"></i> DOMDOM-CINE</h1>
+            </div>
+            <nav class="netflix-nav">
+                <button class="nav-item active" onclick="showTab('home')">
+                    <i class="fas fa-home"></i> Trang chủ
+                </button>
+                <button class="nav-item" onclick="showTab('movies')">
+                    <i class="fas fa-film"></i> Phim
+                </button>
+                <button class="nav-item" onclick="showTab('recommendations')">
+                    <i class="fas fa-magic"></i> Gợi ý AI
+                </button>
+                <button class="nav-item" onclick="showTab('social')">
+                    <i class="fas fa-users"></i> Cộng đồng
+                </button>
+            </nav>
+            <div class="user-profile">
+                <select id="userSelect" class="user-selector">
+                    <option value="1">👤 User 1</option>
+                    <option value="2">👤 User 2</option>
+                    <option value="3">👤 User 3</option>
+                    <option value="4">👤 User 4</option>
+                    <option value="5">👤 User 5</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="netflix-main">
+        <!-- Home Tab - RoPhim Hero Style -->
+        <div id="home" class="tab-content active">
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h1 class="hero-title">Khám phá thế giới điện ảnh</h1>
+                    <p class="hero-description">Hệ thống gợi ý phim thông minh với AI Collaborative Filtering. Tìm kiếm những bộ phim phù hợp với sở thích của bạn.</p>
+                    <div class="hero-buttons">
+                        <button class="btn-hero primary" onclick="showTab('recommendations')">
+                            <i class="fas fa-play"></i> Lấy gợi ý ngay
+                        </button>
+                        <button class="btn-hero secondary" onclick="showTab('movies')">
+                            <i class="fas fa-info-circle"></i> Khám phá phim
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-gradient"></div>
+            </section>
+
+            <!-- Featured Movies Row -->
+            <section class="movies-row">
+                <h2 class="row-title">🔥 Phim nổi bật</h2>
+                <div id="featuredMovies" class="netflix-slider">
+                    <!-- Featured movies will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Trending Movies Row -->
+            <section class="movies-row">
+                <h2 class="row-title">📈 Xu hướng</h2>
+                <div id="trendingMovies" class="netflix-slider">
+                    <!-- Trending movies will be loaded here -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Movies Tab -->
+        <div id="movies" class="tab-content">
+            <div class="content-header">
+                <h1 class="page-title">🎬 Thư viện phim</h1>
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="movieSearch" placeholder="Tìm kiếm phim, thể loại..." onkeyup="filterMovies()">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="moviesList" class="netflix-grid">
+                <!-- Movies will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Recommendations Tab -->
+        <div id="recommendations" class="tab-content">
+            <div class="content-header">
+                <h1 class="page-title">✨ Gợi ý dành riêng cho bạn</h1>
+                <p class="page-subtitle">Những bộ phim được AI lựa chọn dựa trên sở thích của bạn</p>
+                <button class="btn-netflix primary" onclick="getRecommendations()">
+                    <i class="fas fa-robot"></i> Tạo gợi ý mới
+                </button>
+            </div>
+            
+            <div id="recommendationsList" class="netflix-grid">
+                <!-- Recommendations will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Social Tab -->
+        <div id="social" class="tab-content">
+            <div class="social-container">
+                <!-- Comments Section -->
+                <div class="social-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-comments"></i> Bình luận của bạn</h2>
+                        <button class="btn-netflix secondary" onclick="loadUserComments()">
+                            <i class="fas fa-refresh"></i> Tải lại
+                        </button>
+                    </div>
+                    <div id="userCommentsList" class="social-feed">
+                        <!-- User comments will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Shares Section -->
+                <div class="social-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-share-alt"></i> Lịch sử chia sẻ</h2>
+                        <button class="btn-netflix secondary" onclick="loadUserShares()">
+                            <i class="fas fa-refresh"></i> Tải lại
+                        </button>
+                    </div>
+                    <div id="userSharesList" class="social-feed">
+                        <!-- User shares will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Popular Movies Section -->
+                <div class="social-section full-width">
+                    <div class="section-header">
+                        <h2><i class="fas fa-fire"></i> Phim hot nhất</h2>
+                        <button class="btn-netflix info" onclick="loadPopularShares()">
+                            <i class="fas fa-chart-line"></i> Xem thống kê
+                        </button>
+                    </div>
+                    <div id="popularSharesList" class="popular-shares-grid">
+                        <!-- Các card sẽ được render ở đây -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- RoPhim Movie Modal -->
+    <div id="movieModal" class="netflix-modal">
+        <div class="modal-backdrop" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="movieDetails" class="movie-details">
+                <!-- Movie details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- RoPhim Toast -->
+    <div id="toast" class="netflix-toast">
+        <div class="toast-content">
+            <i class="toast-icon fas fa-check-circle"></i>
+            <span class="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
