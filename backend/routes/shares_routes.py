@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models.movie import Share
+from models.user_interaction import UserInteraction
 from models.user import User
 from models.movie import Movie
 from extensions import db
@@ -33,11 +33,13 @@ def share_movie():
     if platform.lower() not in valid_platforms:
         return jsonify({'message': f'Invalid platform. Supported platforms: {valid_platforms}'}), 400
     
-    # Create new share record
-    share = Share(
+    # Create new share record (lưu platform vào content nếu muốn)
+    share = UserInteraction(
         userId=userId,
         movieId=movieId,
-        platform=platform.lower()
+        type='Share',
+        content=platform.lower(),
+        created_at=datetime.utcnow()
     )
     
     db.session.add(share)
@@ -58,11 +60,11 @@ def share_movie():
     
     return jsonify({
         'message': 'Movie shared successfully',
-        'shareId': share.shareId,
+        'id': share.id,
         'platform': platform,
         'movieTitle': movie.title,
         'shareContent': share_content.get(platform.lower(), movie_url),
-        'shared_at': share.shared_at.isoformat()
+        'shared_at': share.created_at.isoformat()
     }), 201
 
 @shares_bp.route('/movie/<int:movie_id>/shares', methods=['GET'])
@@ -72,14 +74,14 @@ def get_movie_shares(movie_id):
     if not movie:
         return jsonify({'message': 'Movie not found'}), 404
     
-    shares = Share.query.filter_by(movieId=movie_id).all()
+    shares = UserInteraction.query.filter_by(movieId=movie_id, type='Share').all()
     
-    # Group by platform
+    # Group by platform (lấy từ content)
     platform_stats = {}
     total_shares = len(shares)
     
     for share in shares:
-        platform = share.platform
+        platform = share.content or 'unknown'
         if platform not in platform_stats:
             platform_stats[platform] = 0
         platform_stats[platform] += 1
@@ -90,10 +92,10 @@ def get_movie_shares(movie_id):
         'totalShares': total_shares,
         'platformStats': platform_stats,
         'shares': [{
-            'shareId': share.shareId,
+            'id': share.id,
             'userId': share.userId,
-            'platform': share.platform,
-            'shared_at': share.shared_at.isoformat()
+            'platform': share.content,
+            'shared_at': share.created_at.isoformat()
         } for share in shares]
     }), 200
 
@@ -104,17 +106,17 @@ def get_user_shares(user_id):
     if not user:
         return jsonify({'message': 'User not found'}), 404
     
-    shares = Share.query.filter_by(userId=user_id).order_by(Share.shared_at.desc()).all()
+    shares = UserInteraction.query.filter_by(userId=user_id, type='Share').order_by(UserInteraction.created_at.desc()).all()
     
     shares_data = []
     for share in shares:
         movie = Movie.query.get(share.movieId)
         shares_data.append({
-            'shareId': share.shareId,
+            'id': share.id,
             'movieId': share.movieId,
             'movieTitle': movie.title if movie else 'Unknown',
-            'platform': share.platform,
-            'shared_at': share.shared_at.isoformat()
+            'platform': share.content,
+            'shared_at': share.created_at.isoformat()
         })
     
     return jsonify({
@@ -130,9 +132,9 @@ def get_popular_shares():
     from sqlalchemy import func
     
     popular_movies = db.session.query(
-        Share.movieId,
-        func.count(Share.shareId).label('share_count')
-    ).group_by(Share.movieId).order_by(func.count(Share.shareId).desc()).limit(10).all()
+        UserInteraction.movieId,
+        func.count(UserInteraction.id).label('share_count')
+    ).filter_by(type='Share').group_by(UserInteraction.movieId).order_by(func.count(UserInteraction.id).desc()).limit(10).all()
     
     popular_data = []
     for movie_id, share_count in popular_movies:
