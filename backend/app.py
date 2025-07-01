@@ -1,18 +1,23 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 from config import Config
 from extensions import db
-from models import User, Movie, Rating
+from models import User, Movie, Rating, Comment, Share
 from routes.user_route import users_bp
 from routes.movies_routes import movies_bp
 from routes.rating_routes import ratings_bp
 from routes.recommendations import recommendations_bp
+from routes.comments_routes import comments_bp
+from routes.shares_routes import shares_bp
 from sqlalchemy import text 
 import csv
 from datetime import datetime
 
 def create_app():
     app = Flask(__name__)
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+    
     app.config['SQLALCHEMY_DATABASE_URI'] = Config.SQLALCHEMY_DATABASE_URI
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = Config.SQLALCHEMY_TRACK_MODIFICATIONS
     db.init_app(app)
@@ -39,6 +44,15 @@ def create_app():
     app.register_blueprint(movies_bp, url_prefix='/movies')
     app.register_blueprint(ratings_bp, url_prefix='/ratings')
     app.register_blueprint(recommendations_bp, url_prefix='')
+    app.register_blueprint(comments_bp, url_prefix='/comments')
+    app.register_blueprint(shares_bp, url_prefix='/shares')
+
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response
 
     return app
 

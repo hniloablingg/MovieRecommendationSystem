@@ -1,7 +1,8 @@
-Flask
-flask_sqlalchemy
-pandas
-scikit_learn
-scipy
-SQLAlchemy
-Werkzeug
+Flask==3.0.0
+Flask-CORS==4.0.0
+pandas>=2.1.4
+numpy>=1.24.0
+scikit-learn>=1.3.0
+scipy>=1.11.0
+python-dotenv==1.0.0
+Werkzeug>=3.0.0
