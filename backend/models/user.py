@@ -10,7 +10,9 @@ class User(db.Model):
     password = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __init__(self, username, email, password, created_at=None):
+    def __init__(self, username, email, password, created_at=None, userId=None):
+        if userId is not None:
+            self.userId = userId
         self.username = username
         self.email = email
         self.password = password

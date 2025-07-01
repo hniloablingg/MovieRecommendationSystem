@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models.movie import Comment
+from models.user_interaction import UserInteraction
 from models.user import User
 from models.movie import Movie
 from extensions import db
@@ -29,10 +29,12 @@ def add_comment():
         return jsonify({'message': 'Movie not found'}), 404
     
     # Create new comment
-    comment = Comment(
+    comment = UserInteraction(
         userId=userId,
         movieId=movieId,
-        content=content
+        type='Comment',
+        content=content,
+        created_at=datetime.utcnow()
     )
     
     db.session.add(comment)
@@ -40,7 +42,7 @@ def add_comment():
     
     return jsonify({
         'message': 'Comment added successfully',
-        'commentId': comment.commentId,
+        'id': comment.id,
         'created_at': comment.created_at.isoformat()
     }), 201
 
@@ -51,13 +53,13 @@ def get_movie_comments(movie_id):
     if not movie:
         return jsonify({'message': 'Movie not found'}), 404
     
-    comments = Comment.query.filter_by(movieId=movie_id).order_by(Comment.created_at.desc()).all()
+    comments = UserInteraction.query.filter_by(movieId=movie_id, type='Comment').order_by(UserInteraction.created_at.desc()).all()
     
     comments_data = []
     for comment in comments:
         user = User.query.get(comment.userId)
         comments_data.append({
-            'commentId': comment.commentId,
+            'id': comment.id,
             'userId': comment.userId,
             'username': user.username if user else 'Unknown',
             'content': comment.content,
@@ -78,13 +80,13 @@ def get_user_comments(user_id):
     if not user:
         return jsonify({'message': 'User not found'}), 404
     
-    comments = Comment.query.filter_by(userId=user_id).order_by(Comment.created_at.desc()).all()
+    comments = UserInteraction.query.filter_by(userId=user_id, type='Comment').order_by(UserInteraction.created_at.desc()).all()
     
     comments_data = []
     for comment in comments:
         movie = Movie.query.get(comment.movieId)
         comments_data.append({
-            'commentId': comment.commentId,
+            'id': comment.id,
             'movieId': comment.movieId,
             'movieTitle': movie.title if movie else 'Unknown',
             'content': comment.content,
@@ -101,7 +103,7 @@ def get_user_comments(user_id):
 @comments_bp.route('/delete/<int:comment_id>', methods=['DELETE'])
 def delete_comment(comment_id):
     """Delete a specific comment"""
-    comment = Comment.query.get(comment_id)
+    comment = UserInteraction.query.filter_by(id=comment_id, type='Comment').first()
     if not comment:
         return jsonify({'message': 'Comment not found'}), 404
     

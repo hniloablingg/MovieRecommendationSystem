@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from config import Config
 from extensions import db
-from models import User, Movie, Rating, Comment, Share
+from models import User, Movie, Rating, UserInteraction
 from routes.user_route import users_bp
 from routes.movies_routes import movies_bp
 from routes.rating_routes import ratings_bp
@@ -98,7 +98,7 @@ def load_movies():
 
 def load_ratings():
     try:
-        with open('./data/ratings.csv', newline='') as csvfile:
+        with open('./data/ratings_filtered.csv', newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader: 
                 rating = Rating(
