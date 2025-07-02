@@ -1,8 +1,18 @@
+
 from flask import Blueprint, jsonify
 import pickle
 import os
+import pandas as pd
 
 recommendations_bp = Blueprint('recommendations', __name__)
+
+# Load movies data for title conversion
+movies_df = None
+try:
+    movies_df = pd.read_csv('./data/movies.csv')
+    print(f"✅ Loaded {len(movies_df)} movies for title conversion")
+except Exception as e:
+    print(f"⚠️  Could not load movies.csv: {e}")
 
 # Try to load the model 
 model_data = None
@@ -37,6 +47,20 @@ try:
         
 except Exception as e:
     print(f"❌ Failed to load model: {e}")
+
+def get_movie_titles(movie_ids):
+    """Convert movie IDs to titles"""
+    if movies_df is None:
+        return [f"Movie ID: {mid}" for mid in movie_ids]
+    
+    titles = []
+    for movie_id in movie_ids:
+        movie_row = movies_df[movies_df['movieId'] == movie_id]
+        if not movie_row.empty:
+            titles.append(movie_row.iloc[0]['title'])
+        else:
+            titles.append(f"Unknown Movie (ID: {movie_id})")
+    return titles
 
 @recommendations_bp.route('/recommendations/<int:user_id>', methods=['GET'])
 def get_recommendations(user_id):
@@ -102,7 +126,22 @@ def get_recommendations(user_id):
         else:
             return jsonify({'message': 'Unknown model type'}), 500
 
-        return jsonify({'recommended_movie_ids': top_movie_ids}), 200
+        # Convert IDs to titles
+        movie_titles = get_movie_titles(top_movie_ids)
+        
+        # Create detailed response with both IDs and titles
+        recommendations = []
+        for i, movie_id in enumerate(top_movie_ids):
+            recommendations.append({
+                'movieId': movie_id,
+                'title': movie_titles[i]
+            })
+
+        return jsonify({
+            # 'recommended_movie_ids': top_movie_ids,
+            # 'recommended_titles': movie_titles,
+            'recommendations': recommendations
+        }), 200
         
     except Exception as e:
         return jsonify({

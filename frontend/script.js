@@ -288,28 +288,31 @@ async function rateMovie(movieId) {
 }
 
 // Get recommendations
+// Get recommendations - Updated to handle the correct JSON format
 async function getRecommendations() {
     showLoading('recommendationsList');
     
     try {
         const response = await apiCall(`/recommendations/${currentUser}`);
-        const movieIds = response.recommended_movie_ids || [];
+        const recommendations = response.recommendations || [];
         
-        if (movieIds.length === 0) {
+        if (recommendations.length === 0) {
             document.getElementById('recommendationsList').innerHTML = `
                 <div class="no-data">Không có gợi ý phim nào cho bạn. Hãy đánh giá thêm một số phim!</div>
             `;
             return;
         }
         
-        // Get movie details for recommended IDs
-        const recommendedMovies = [];
-        for (const movieId of movieIds) {
-            const movie = allMovies.find(m => m.movieId === movieId);
-            if (movie) {
-                recommendedMovies.push(movie);
-            }
-        }
+        // Map the recommendations to include genre information from allMovies
+        const recommendedMovies = recommendations.map(rec => {
+            // Find the full movie info from allMovies array
+            const fullMovie = allMovies.find(m => m.movieId === rec.movieId);
+            return {
+                movieId: rec.movieId,
+                title: rec.title,
+                genres: fullMovie ? fullMovie.genres : 'N/A' // Use genres from allMovies or fallback
+            };
+        });
         
         displayRecommendations(recommendedMovies);
     } catch (error) {
